@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Async Job Lab Demo</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: #38bdf8; text-align: center; }
+        p { font-size: 1.1rem; color: #94a3b8; margin-bottom: 2rem; text-align: center; max-width: 600px; }
+        button { background: #3b82f6; color: white; border: none; padding: 1rem 2rem; font-size: 1.2rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        button:hover { background: #2563eb; transform: translateY(-1px); }
+        button:disabled { background: #475569; cursor: not-allowed; transform: none; }
+        .loading { display: none; margin-top: 1rem; color: #fbbf24; font-weight: 500; font-size: 1.1rem; }
+        .results { display: none; margin-top: 2rem; background: #1e293b; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #334155; width: 100%; max-width: 600px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .results pre { margin: 0; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: #a5b4fc; font-size: 1.05rem; }
+        .success { color: #4ade80 !important; }
+    </style>
+</head>
+<body>
+    <h1>Async Job Performance Lab</h1>
+    <p>Compare Cron-based polling vs Redis-backed queues. Click the button to start the benchmark suite. It will simulate a 5-job workload for both pathways.</p>
+    
+    <button id="runBtn" onclick="runBenchmark()">Run Benchmark</button>
+    <div id="loading" class="loading">Running benchmark suite... This will take about a minute. Please wait!</div>
+    
+    <div id="results" class="results">
+        <h2 style="margin-top: 0; font-size: 1.3rem; color: #e2e8f0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 1rem;">Benchmark Results</h2>
+        <pre id="resultsOutput"></pre>
+    </div>
+
+    <script>
+        async function runBenchmark() {
+            const btn = document.getElementById('runBtn');
+            const loading = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            const resultsOutput = document.getElementById('resultsOutput');
+            
+            btn.disabled = true;
+            loading.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            resultsOutput.textContent = '';
+            
+            try {
+                const response = await fetch('/api/benchmark', { method: 'POST' });
+                const data = await response.json();
+                
+                resultsOutput.textContent = JSON.stringify(data, null, 2);
+                resultsOutput.classList.add('success');
+                resultsDiv.style.display = 'block';
+            } catch (error) {
+                resultsOutput.textContent = 'Error: ' + error.message;
+                resultsOutput.classList.remove('success');
+                resultsOutput.style.color = '#f87171';
+                resultsDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
